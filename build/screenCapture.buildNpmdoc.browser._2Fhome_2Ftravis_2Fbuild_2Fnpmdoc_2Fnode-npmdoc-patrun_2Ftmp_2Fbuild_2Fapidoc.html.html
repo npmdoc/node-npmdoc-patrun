@@ -1,0 +1,284 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="https://github.com/rjrodger/patrun">patrun (v0.5.1)</a>
+</h1>
+<h4>A fast pattern matcher on JavaScript object properties.</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.patrun">module patrun</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.patrun.patrun">
+            function <span class="apidocSignatureSpan"></span>patrun
+            <span class="apidocSignatureSpan">( custom )</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.patrun" id="apidoc.module.patrun">module patrun</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.patrun.patrun" id="apidoc.element.patrun.patrun">
+        function <span class="apidocSignatureSpan"></span>patrun
+        <span class="apidocSignatureSpan">( custom )</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">patrun = function ( custom ) {
+  custom = custom || {}
+
+  var self = {}
+  var top  = {}
+
+
+  self.noConflict = function() {
+    root.patrun = previous_patrun;
+    return self;
+  }
+
+
+  self.add = function( pat, data ) {
+    pat = _.clone(pat)
+
+    var customizer = _.isFunction(custom) ? custom.call(self,pat,data) : null
+
+
+    var keys = _.keys(pat), plains = [], gexers = []
+
+    keys.forEach(function(key){
+      var val = pat[key]
+      if( null == val ) return;
+
+      val = String(val)
+      pat[key] = val;
+
+      (( custom.gex &amp;&amp; val.match(/[\*\?]/) ) ? gexers : plains ).push(key)
+    })
+
+    plains = plains.sort()
+    gexers = gexers.sort()
+
+    keys = plains.concat(gexers)
+
+
+    var keymap = top, valmap
+
+    for( var i = 0; i &lt; keys.length; i++ ) {
+      var key = keys[i]
+      var val = pat[key]
+
+      var gexer = ( custom.gex &amp;&amp; val.match(/[\*\?]/) ) ? gex(val) : null
+      if( gexer ) gexer.val$ = val
+
+      var sort_prefix = (gexer?'1':'0')+'~'
+      var sort_key = sort_prefix+key
+
+      valmap = keymap.v
+
+      if( valmap &amp;&amp; sort_key == keymap.sk ) {
+        add_gexer( keymap, key, gexer )
+        keymap = valmap[val] || (valmap[val]={})
+      }
+      else if( !keymap.k ) {
+        add_gexer( keymap, key, gexer )
+        keymap.k = key
+        keymap.sk = sort_key
+        keymap.v = {}
+        keymap = keymap.v[val] = {}
+      }
+      else if( sort_key &lt; keymap.sk ) {
+        var s = keymap.s, g = keymap.g
+        keymap.s = {k:keymap.k,sk:keymap.sk,v:keymap.v}
+        if( s ) keymap.s.s = s
+        if( g ) keymap.s.g = g
+
+        if( keymap.g ) keymap.g = {}
+        add_gexer( keymap, key, gexer )
+
+        keymap.k = key
+        keymap.sk = sort_key
+        keymap.v = {}
+
+        keymap = keymap.v[val] = {}
+      }
+      else {
+        valmap = keymap.v
+        keymap = keymap.s || (keymap.s = {})
+        i--
+      }
+    }
+
+    if( void 0 !== data &amp;&amp; keymap ) {
+      keymap.d = data
+      if( customizer ) {
+        keymap.f = _.isFunction(customizer) ? customizer : customizer.find
+        keymap.r = _.isFunction(customizer.remove) ? customizer.remove : void 0
+      }
+    }
+
+    return self
+  }
+
+
+  function add_gexer( keymap, key, gexer ) {
+    if( !gexer ) return;
+
+    var g = (keymap.g = keymap.g || {})
+    var ga = (g[key] = g[key] || [])
+    ga.push( gexer )
+    ga.sort( function(a,b) {
+      return a.val$ &lt; b.val$
+    })
+  }
+
+
+  self.findexact = function( pat ) {
+    return self.find( pat, true )
+  }
+
+
+  self.find = function( pat, exact ) {
+    if( null == pat ) return null;
+
+    var keymap    = top
+    var data      = void 0 === top.d ? null : top.d
+    var finalfind = top.f
+    var key       = null
+    var stars     = []
+    var foundkeys = {}
+    var patlen    = _.keys(pat).length
+
+    do {
+      key = keymap.k
+
+      if( keymap.v ) {
+        var val = pat[key]
+        var nextkeymap = keymap.v[val]
+
+        if( !nextkeymap &amp;&amp; custom.gex &amp;&amp; keymap.g &amp;&amp; keymap.g[key] ) {
+          var ga = keymap.g[key]
+          for( var gi = 0; gi &lt; ga.length; gi++ ) {
+            if( null != ga[gi].on(val) ) {
+              nextkeymap = keymap.v[ga[gi].val$]
+              break;
+            }
+          }
+        }
+
+        if( nextkeymap ) {
+          foundkeys[key]=true
+
+          if( keymap.s ) {
+            stars.push(keymap.s)
+          }
+
+          data      = void 0 === nextkeymap.d ? null : nextkeymap.d
+          finalfind = nextkeymap.f
+          keymap    = nextkeymap
+        }
+        else {
+          keymap = keymap.s
+        }
+      }
+      else {
+        keymap = null
+      }
+
+      if( null == keymap &amp;&amp; null == data &amp;&amp; 0 &lt; stars.length ) {
+        keymap = stars.pop()
+      }
+    }
+    while( keymap )
+
+    if( exact ) {
+      if( _.keys(foundkeys).length !== patlen ) {
+        data = null
+      }
+    }
+    else {
+      // If there's root data, return as a catch all
+      if( null == data &amp;&amp; void 0 !== top.d ) {
+        data = top.d
+      }
+    }
+
+    if( finalfind ) {
+      data = finalfind.call(self,pat,data)
+    }
+
+    return data
+  }
+
+
+
+
+  self.remove = function( pat ) {
+    var keymap = top
+    var dat ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
