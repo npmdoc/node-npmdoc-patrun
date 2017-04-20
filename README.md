@@ -1,4 +1,7 @@
-# api documentation for  [patrun (v0.5.1)](https://github.com/rjrodger/patrun)  [![npm package](https://img.shields.io/npm/v/npmdoc-patrun.svg?style=flat-square)](https://www.npmjs.org/package/npmdoc-patrun) [![travis-ci.org build-status](https://api.travis-ci.org/npmdoc/node-npmdoc-patrun.svg)](https://travis-ci.org/npmdoc/node-npmdoc-patrun)
+# npmdoc-patrun
+
+#### api documentation for  [patrun (v0.5.1)](https://github.com/rjrodger/patrun)  [![npm package](https://img.shields.io/npm/v/npmdoc-patrun.svg?style=flat-square)](https://www.npmjs.org/package/npmdoc-patrun) [![travis-ci.org build-status](https://api.travis-ci.org/npmdoc/node-npmdoc-patrun.svg)](https://travis-ci.org/npmdoc/node-npmdoc-patrun)
+
 #### A fast pattern matcher on JavaScript object properties.
 
 [![NPM](https://nodei.co/npm/patrun.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/patrun)
@@ -18,34 +21,8 @@
 ```json
 
 {
-    "author": {
-        "name": "Richard Rodger",
-        "url": "http://richardrodger.com"
-    },
-    "bugs": {
-        "url": "https://github.com/rjrodger/patrun/issues"
-    },
-    "dependencies": {
-        "gex": "0.2.2",
-        "lodash": "4.15.0"
-    },
+    "name": "patrun",
     "description": "A fast pattern matcher on JavaScript object properties.",
-    "devDependencies": {
-        "jasmine-node": "1.14.5",
-        "serve": "1.4.0"
-    },
-    "directories": {},
-    "dist": {
-        "shasum": "5bff3757f4f3fd2bdfb6a04d27942cbec3e12f1c",
-        "tarball": "https://registry.npmjs.org/patrun/-/patrun-0.5.1.tgz"
-    },
-    "files": [
-        "patrun.js",
-        "patrun-min.js",
-        "patrun-min.map",
-        "LICENSE"
-    ],
-    "gitHead": "6ff7117f93b486bf48be8be9e79ca9ad5ab54a7b",
     "homepage": "https://github.com/rjrodger/patrun",
     "keywords": [
         "pattern",
@@ -54,25 +31,33 @@
         "property",
         "json"
     ],
-    "license": "MIT",
-    "main": "patrun.js",
-    "maintainers": [
-        {
-            "name": "rjrodger"
-        }
-    ],
-    "name": "patrun",
-    "optionalDependencies": {},
+    "author": "Richard Rodger (http://richardrodger.com)",
     "repository": {
         "type": "git",
         "url": "git://github.com/rjrodger/patrun.git"
     },
+    "main": "patrun.js",
+    "version": "0.5.1",
     "scripts": {
+        "test": "jasmine-node test",
         "browser-test": "./test.sh",
-        "build": "./build.sh",
-        "test": "jasmine-node test"
+        "build": "./build.sh"
     },
-    "version": "0.5.1"
+    "license": "MIT",
+    "files": [
+        "patrun.js",
+        "patrun-min.js",
+        "patrun-min.map",
+        "LICENSE"
+    ],
+    "dependencies": {
+        "lodash": "4.15.0",
+        "gex": "0.2.2"
+    },
+    "devDependencies": {
+        "jasmine-node": "1.14.5",
+        "serve": "1.4.0"
+    }
 }
 ```
 
