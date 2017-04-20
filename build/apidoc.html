@@ -70,24 +70,15 @@
 
         </li>
 
-        <li>
-
-            <a class="apidocElementLiA" href="#apidoc.element.patrun.toString">
-            function <span class="apidocSignatureSpan">patrun.</span>toString
-            <span class="apidocSignatureSpan">()</span>
-            </a>
-
-        </li>
-
     </ol></li>
 
-    <li class="apidocModuleLi"><a href="#apidoc.module.patrun.toString">module patrun.toString</a><ol>
+    <li class="apidocModuleLi"><a href="#apidoc.module.patrun.patrun">module patrun.patrun</a><ol>
 
         <li>
 
-            <a class="apidocElementLiA" href="#apidoc.element.patrun.toString.toString">
-            function <span class="apidocSignatureSpan">patrun.</span>toString
-            <span class="apidocSignatureSpan">()</span>
+            <a class="apidocElementLiA" href="#apidoc.element.patrun.patrun.patrun">
+            function <span class="apidocSignatureSpan">patrun.</span>patrun
+            <span class="apidocSignatureSpan">( custom )</span>
             </a>
 
         </li>
@@ -302,68 +293,211 @@
     </ul>
 
 
-
-    <h2>
-        <a href="#apidoc.element.patrun.toString" id="apidoc.element.patrun.toString">
-        function <span class="apidocSignatureSpan">patrun.</span>toString
-        <span class="apidocSignatureSpan">()</span>
-        </a>
-    </h2>
-    <ul>
-    <li>description and source-code<pre class="apidocCodePre">toString = function () {
-    return text;
-}</pre></li>
-    <li>example usage<pre class="apidocCodePre">...
-```
-
-You can take a look a the decision tree at any time:
-
-```JavaScript
-
-// print out patterns, using a custom format function
-console.log(salestax.<span class="apidocCodeKeywordSpan">toString</span>( function(f){return f.name+&#x27;:&#x27;+f.val} ))
-
-
-// prints:
- -&#x3e; :0
-city=Montgomery, country=US, state=AL -&#x3e; :0.1
-country=IE -&#x3e; :0.25
-country=IE, type=reduced -&#x3e; :0.135
-...</pre></li>
-    </ul>
-
-
 </div>
 
 <div class="apidocSectionDiv">
-<h1><a href="#apidoc.module.patrun.toString" id="apidoc.module.patrun.toString">module patrun.toString</a></h1>
+<h1><a href="#apidoc.module.patrun.patrun" id="apidoc.module.patrun.patrun">module patrun.patrun</a></h1>
 
 
     <h2>
-        <a href="#apidoc.element.patrun.toString.toString" id="apidoc.element.patrun.toString.toString">
-        function <span class="apidocSignatureSpan">patrun.</span>toString
-        <span class="apidocSignatureSpan">()</span>
+        <a href="#apidoc.element.patrun.patrun.patrun" id="apidoc.element.patrun.patrun.patrun">
+        function <span class="apidocSignatureSpan">patrun.</span>patrun
+        <span class="apidocSignatureSpan">( custom )</span>
         </a>
     </h2>
     <ul>
-    <li>description and source-code<pre class="apidocCodePre">function toString() { [native code] }</pre></li>
-    <li>example usage<pre class="apidocCodePre">...
-```
+    <li>description and source-code<pre class="apidocCodePre">patrun = function ( custom ) {
+  custom = custom || {}
 
-You can take a look a the decision tree at any time:
-
-```JavaScript
-
-// print out patterns, using a custom format function
-console.log(salestax.<span class="apidocCodeKeywordSpan">toString</span>( function(f){return f.name+&#x27;:&#x27;+f.val} ))
+  var self = {}
+  var top  = {}
 
 
-// prints:
- -&#x3e; :0
-city=Montgomery, country=US, state=AL -&#x3e; :0.1
-country=IE -&#x3e; :0.25
-country=IE, type=reduced -&#x3e; :0.135
-...</pre></li>
+  self.noConflict = function() {
+    root.patrun = previous_patrun;
+    return self;
+  }
+
+
+  self.add = function( pat, data ) {
+    pat = _.clone(pat)
+
+    var customizer = _.isFunction(custom) ? custom.call(self,pat,data) : null
+
+
+    var keys = _.keys(pat), plains = [], gexers = []
+
+    keys.forEach(function(key){
+      var val = pat[key]
+      if( null == val ) return;
+
+      val = String(val)
+      pat[key] = val;
+
+      (( custom.gex &#x26;&#x26; val.match(/[\*\?]/) ) ? gexers : plains ).push(key)
+    })
+
+    plains = plains.sort()
+    gexers = gexers.sort()
+
+    keys = plains.concat(gexers)
+
+
+    var keymap = top, valmap
+
+    for( var i = 0; i &#x3c; keys.length; i++ ) {
+      var key = keys[i]
+      var val = pat[key]
+
+      var gexer = ( custom.gex &#x26;&#x26; val.match(/[\*\?]/) ) ? gex(val) : null
+      if( gexer ) gexer.val$ = val
+
+      var sort_prefix = (gexer?&#x27;1&#x27;:&#x27;0&#x27;)+&#x27;~&#x27;
+      var sort_key = sort_prefix+key
+
+      valmap = keymap.v
+
+      if( valmap &#x26;&#x26; sort_key == keymap.sk ) {
+        add_gexer( keymap, key, gexer )
+        keymap = valmap[val] || (valmap[val]={})
+      }
+      else if( !keymap.k ) {
+        add_gexer( keymap, key, gexer )
+        keymap.k = key
+        keymap.sk = sort_key
+        keymap.v = {}
+        keymap = keymap.v[val] = {}
+      }
+      else if( sort_key &#x3c; keymap.sk ) {
+        var s = keymap.s, g = keymap.g
+        keymap.s = {k:keymap.k,sk:keymap.sk,v:keymap.v}
+        if( s ) keymap.s.s = s
+        if( g ) keymap.s.g = g
+
+        if( keymap.g ) keymap.g = {}
+        add_gexer( keymap, key, gexer )
+
+        keymap.k = key
+        keymap.sk = sort_key
+        keymap.v = {}
+
+        keymap = keymap.v[val] = {}
+      }
+      else {
+        valmap = keymap.v
+        keymap = keymap.s || (keymap.s = {})
+        i--
+      }
+    }
+
+    if( void 0 !== data &#x26;&#x26; keymap ) {
+      keymap.d = data
+      if( customizer ) {
+        keymap.f = _.isFunction(customizer) ? customizer : customizer.find
+        keymap.r = _.isFunction(customizer.remove) ? customizer.remove : void 0
+      }
+    }
+
+    return self
+  }
+
+
+  function add_gexer( keymap, key, gexer ) {
+    if( !gexer ) return;
+
+    var g = (keymap.g = keymap.g || {})
+    var ga = (g[key] = g[key] || [])
+    ga.push( gexer )
+    ga.sort( function(a,b) {
+      return a.val$ &#x3c; b.val$
+    })
+  }
+
+
+  self.findexact = function( pat ) {
+    return self.find( pat, true )
+  }
+
+
+  self.find = function( pat, exact ) {
+    if( null == pat ) return null;
+
+    var keymap    = top
+    var data      = void 0 === top.d ? null : top.d
+    var finalfind = top.f
+    var key       = null
+    var stars     = []
+    var foundkeys = {}
+    var patlen    = _.keys(pat).length
+
+    do {
+      key = keymap.k
+
+      if( keymap.v ) {
+        var val = pat[key]
+        var nextkeymap = keymap.v[val]
+
+        if( !nextkeymap &#x26;&#x26; custom.gex &#x26;&#x26; keymap.g &#x26;&#x26; keymap.g[key] ) {
+          var ga = keymap.g[key]
+          for( var gi = 0; gi &#x3c; ga.length; gi++ ) {
+            if( null != ga[gi].on(val) ) {
+              nextkeymap = keymap.v[ga[gi].val$]
+              break;
+            }
+          }
+        }
+
+        if( nextkeymap ) {
+          foundkeys[key]=true
+
+          if( keymap.s ) {
+            stars.push(keymap.s)
+          }
+
+          data      = void 0 === nextkeymap.d ? null : nextkeymap.d
+          finalfind = nextkeymap.f
+          keymap    = nextkeymap
+        }
+        else {
+          keymap = keymap.s
+        }
+      }
+      else {
+        keymap = null
+      }
+
+      if( null == keymap &#x26;&#x26; null == data &#x26;&#x26; 0 &#x3c; stars.length ) {
+        keymap = stars.pop()
+      }
+    }
+    while( keymap )
+
+    if( exact ) {
+      if( _.keys(foundkeys).length !== patlen ) {
+        data = null
+      }
+    }
+    else {
+      // If there&#x27;s root data, return as a catch all
+      if( null == data &#x26;&#x26; void 0 !== top.d ) {
+        data = top.d
+      }
+    }
+
+    if( finalfind ) {
+      data = finalfind.call(self,pat,data)
+    }
+
+    return data
+  }
+
+
+
+
+  self.remove = function( pat ) {
+    var keymap = top
+    var dat ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
     </ul>
 
 
